@@ -9,6 +9,7 @@ Copyright (c) 2009 Stuart Grimshaw. All rights reserved.
 
 import sys
 import getopt
+import re
 from reverend.thomas import Bayes
 
 
@@ -51,7 +52,8 @@ def main(argv=None):
 			raise Usage(msg)
 
 		filter =  CommitFilter()
-
+		verbose = False
+		
 		# option processing
 		for option, value in opts:
 			if option == "-v":
@@ -61,10 +63,20 @@ def main(argv=None):
 			elif option in ("-o", "--output"):
 				output = value
 			elif option in("-t", "--train"):
-				filter.train('fail', value)
+				filter.train('fail', value.lower())
 				filter.save(fname=filter.fname)
 			elif option in("-g", "--guess"):
-				print filter.guess(value)
+				# Check for a comment that's just punctuation
+				if re.match('$\p+^', value) or len(value) == 1:
+					return 1
+				
+				# Loop throught the results of the guess and see if any fail
+				for group, percentage in filter.guess(value.lower()):
+					if group == 'fail' and percentage > 0.90:
+						if verbose:
+							print percentage
+
+						return 1
 			elif option in("-s", "--stats"):
 				print filter.poolTokens('fail')
 			else:
