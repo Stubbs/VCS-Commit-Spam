@@ -47,17 +47,20 @@ def main(argv=None):
 		argv = sys.argv
 	try:
 		try:
-			opts, args = getopt.getopt(argv[1:], "tgho:vs", ["help", "output=", "train=", "guess="])
+			opts, args = getopt.getopt(argv[1:], "tgho:vps", ["help", "output=", "train=", "guess="])
 		except getopt.error, msg:
 			raise Usage(msg)
 
 		filter =  CommitFilter()
 		verbose = False
+		pretend = False
 		
 		# option processing
 		for option, value in opts:
 			if option == "-v":
 				verbose = True
+			elif option == "-p":
+				pretend = True
 			elif option in ("-h", "--help"):
 				raise Usage(help_message)
 			elif option in ("-o", "--output"):
@@ -76,7 +79,10 @@ def main(argv=None):
 						if verbose:
 							print percentage
 
-						return 1
+						if pretend:
+							print "That looks like spam to me"
+						else:
+							return 1
 			elif option in("-s", "--stats"):
 				print filter.poolTokens('fail')
 			else:
